@@ -3,6 +3,7 @@ import sys
 
 import images as img
 
+EXTENSIONS_TO_IGNORE: [str] = [".thm", ".db", ".docx"]
 
 def main() -> None:
     print()
@@ -20,8 +21,12 @@ def main() -> None:
 
         for f in sorted(files):
             full_path: str = os.path.join(current_dir, f)
+            extension: str = full_path[-5:].lower()
+            while len(extension) > 0 and extension[0] != ".":
+                extension = extension[1:]
+
             if not img.has_extended_file_attr_set_to_yes(full_path, img.ON_PLEX_ATTR_NAME) \
-               and not "Thumbs.db" == f:
+               and not extension in EXTENSIONS_TO_IGNORE:
                 print(f"    {f}")
         print()
 

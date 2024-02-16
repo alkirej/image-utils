@@ -8,7 +8,10 @@ ON_PLEX_ATTR_NAME: str = "user.copied-to-plex"
 ATTR_SET_VALUE: bytes = b"Yes"
 
 
-def load_image(path: str) -> exif.Image:
+def load_image(path: str) -> exif.Image | None:
+    if path[-4:] == ".gif":
+        return None
+
     with open(path, "rb") as f:
         return exif.Image(f)
 
@@ -19,11 +22,23 @@ def get_dir_tree_from_path(path: str) -> (str, str):
 
 
 def get_dir_tree_from_image(image: exif.Image) -> (str, str):
-    timestamp: str = image.datetime_original
+    try:
+        timestamp: str = image.datetime_original
+    except AttributeError:
+        raise KeyError
+
     dt: str = timestamp.split(" ")[0]
     date_parts: [str] = dt.split(":")
+    if len(date_parts) == 1:
+        date_parts = dt.split("-")
 
-    return date_parts[0], f"{date_parts[0]}{date_parts[1]}{date_parts[2]}"
+    try:
+        return date_parts[0], f"{date_parts[0]}{date_parts[1]}{date_parts[2]}"
+    except IndexError as ie:
+        print(ie)
+        print()
+        print(date_parts)
+        raise KeyError
 
 
 def mark_copied_to_plex(path: str) -> bool:
